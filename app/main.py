@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from app.data_store import store
-from app.models import IngredientUpdate,OrderRequest
+from app.models import IngredientUpdate,OrderRequest,Ingredient
 from app import stock_service
 from app import menu_service
 from app import order_service
@@ -38,6 +38,26 @@ def create_order(payload: OrderRequest):
     except (order_service.DishUnavailableError, order_service.InsufficientStockError) as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"dish": payload.dish, "status": "ordered"}
+
+@app.post("/api/ingredients", status_code=201)
+def add_ingredient(payload: Ingredient):
+    """Adds a new ingredient to stock."""
+    try:
+        return stock_service.add_ingredient(store, payload)
+    except stock_service.IngredientAlreadyExistsError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+
+@app.delete("/api/ingredients/{name}")
+def delete_ingredient(name: str):
+    """Deletes an ingredient, unless a recipe still depends on it."""
+    try:
+        stock_service.delete_ingredient(store, name)
+    except stock_service.IngredientNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except stock_service.IngredientInUseError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    return {"name": name, "status": "deleted"}
 
 @app.put("/api/ingredients/{name}")
 def edit_ingredient(name: str, payload: IngredientUpdate):

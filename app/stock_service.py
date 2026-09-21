@@ -52,6 +52,48 @@ def list_ingredients(store: DataStore) -> list[Ingredient]:
 
 class IngredientNotFoundError(Exception):
     """Raised when trying to update or delete an ingredient that doesn't exist."""
+    
+class IngredientAlreadyExistsError(Exception):
+    """Raised when adding an ingredient whose name is already in stock."""
+
+
+class IngredientInUseError(Exception):
+    """Raised when deleting an ingredient that's still used by a recipe."""
+
+
+def add_ingredient(store: DataStore, ingredient: Ingredient) -> Ingredient:
+    """
+    Adds a new ingredient. Rejects if the name already exists - editing
+    an existing one should go through update_ingredient instead, so add
+    and edit don't silently overlap.
+    """
+    if store.get_ingredient(ingredient.name) is not None:
+        raise IngredientAlreadyExistsError(f"'{ingredient.name}' already exists")
+    store.upsert_ingredient(ingredient)
+    return ingredient
+
+
+def delete_ingredient(store: DataStore, name: str) -> None:
+    """
+    Deletes an ingredient, unless some recipe still needs it. Deleting
+    it out from under a recipe would silently make that dish permanently
+    unavailable with no clear reason why - so this blocks the delete
+    instead and names which dishes are affected.
+    """
+    if store.get_ingredient(name) is None:
+        raise IngredientNotFoundError(f"'{name}' does not exist")
+
+    affected = [
+        recipe.dish
+        for recipe in store.list_recipes()
+        if any(line.name == name for line in recipe.ingredients)
+    ]
+    if affected:
+        raise IngredientInUseError(
+            f"Can't delete '{name}' - used by {', '.join(affected)}"
+        )
+
+    store.delete_ingredient(name)
 
 
 def update_ingredient(

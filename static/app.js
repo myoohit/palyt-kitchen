@@ -59,6 +59,7 @@ async function placeOrder(dish) {
   await loadIngredients();
   await loadMenu();
 }
+
 async function loadIngredients() {
   const response = await fetch("/api/ingredients");
   const ingredients = await response.json();
@@ -87,10 +88,15 @@ function buildRow(ingredient) {
     <td class="par-cell">${ingredient.par}</td>
     <td class="status-cell">${statusBadge}</td>
     <td><button class="btn btn-sm btn-outline-primary edit-btn">Edit</button></td>
+    <td><button class="btn btn-sm btn-outline-danger delete-btn">Delete</button></td>
   `;
 
   row.querySelector(".edit-btn").addEventListener("click", () => {
     startEdit(row, ingredient);
+  });
+
+  row.querySelector(".delete-btn").addEventListener("click", () => {
+    deleteIngredient(ingredient.name);
   });
 
   return row;
@@ -101,7 +107,7 @@ function buildRow(ingredient) {
 function startEdit(row, ingredient) {
   const qtyCell = row.querySelector(".qty-cell");
   const parCell = row.querySelector(".par-cell");
-  const actionsCell = row.querySelector("td:last-child");
+  const actionsCell = row.querySelector("td:nth-last-child(2)");
 
   qtyCell.innerHTML = `<input type="number" step="any" min="0" class="form-control form-control-sm" value="${ingredient.qty}">`;
   parCell.innerHTML = `<input type="number" step="any" min="0" class="form-control form-control-sm" value="${ingredient.par}">`;
@@ -142,6 +148,49 @@ async function saveEdit(name, qtyValue, parValue) {
   await loadMenu();
 }
 
+async function deleteIngredient(name) {
+  if (!confirm(`Delete '${name}'?`)) return;
+
+  const response = await fetch(`/api/ingredients/${encodeURIComponent(name)}`, {
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    alert(`Could not delete: ${formatErrorDetail(error.detail)}`);
+    return;
+  }
+
+  await loadIngredients();
+  await loadMenu();
+}
+
+document.getElementById("add-ingredient-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const payload = {
+    name: document.getElementById("new-name").value,
+    qty: parseFloat(document.getElementById("new-qty").value),
+    unit: document.getElementById("new-unit").value,
+    par: parseFloat(document.getElementById("new-par").value),
+  };
+
+  const response = await fetch("/api/ingredients", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    alert(`Could not add ingredient: ${formatErrorDetail(error.detail)}`);
+    return;
+  }
+
+  e.target.reset();
+  await loadIngredients();
+  await loadMenu();
+});
 
 // FastAPI's own validation errors (e.g. negative numbers) come back as a
 // list of objects, not a plain string, so this makes both readable.
