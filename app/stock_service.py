@@ -52,7 +52,7 @@ def list_ingredients(store: DataStore) -> list[Ingredient]:
 
 class IngredientNotFoundError(Exception):
     """Raised when trying to update or delete an ingredient that doesn't exist."""
-    
+
 class IngredientAlreadyExistsError(Exception):
     """Raised when adding an ingredient whose name is already in stock."""
 
@@ -66,12 +66,19 @@ def add_ingredient(store: DataStore, ingredient: Ingredient) -> Ingredient:
     Adds a new ingredient. Rejects if the name already exists - editing
     an existing one should go through update_ingredient instead, so add
     and edit don't silently overlap.
+
+    Comparison is case-insensitive, so "Cashews" and "cashews" can't
+    become two separate stock entries - the given data has no such
+    duplicates, but nothing stops someone from typing one in.
     """
-    if store.get_ingredient(ingredient.name) is not None:
+    duplicate = any(
+        existing.name.lower() == ingredient.name.lower()
+        for existing in store.list_ingredients()
+    )
+    if duplicate:
         raise IngredientAlreadyExistsError(f"'{ingredient.name}' already exists")
     store.upsert_ingredient(ingredient)
     return ingredient
-
 
 def delete_ingredient(store: DataStore, name: str) -> None:
     """

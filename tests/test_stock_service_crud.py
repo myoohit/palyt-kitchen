@@ -38,6 +38,12 @@ def test_add_ingredient_rejects_duplicate_name():
     with pytest.raises(stock_service.IngredientAlreadyExistsError):
         stock_service.add_ingredient(store, duplicate)
 
+def test_add_ingredient_rejects_duplicate_name_case_insensitive():
+    store = make_store_with_recipes()
+    duplicate = Ingredient(name="cashews", qty=999, unit="g", par=1)
+    with pytest.raises(stock_service.IngredientAlreadyExistsError):
+        stock_service.add_ingredient(store, duplicate)
+
 
 def test_delete_ingredient_succeeds_when_unreferenced():
     store = make_store_with_recipes()

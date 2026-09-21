@@ -60,11 +60,23 @@ async function placeOrder(dish) {
   await loadMenu();
 }
 
+let allIngredients = [];
+
 async function loadIngredients() {
   const response = await fetch("/api/ingredients");
-  const ingredients = await response.json();
-  renderIngredients(ingredients);
+  allIngredients = await response.json();
+  applyStockFilter();
 }
+
+function applyStockFilter() {
+  const query = document.getElementById("stock-search").value.trim().toLowerCase();
+  const filtered = query
+    ? allIngredients.filter((i) => i.name.toLowerCase().includes(query))
+    : allIngredients;
+  renderIngredients(filtered);
+}
+
+document.getElementById("stock-search").addEventListener("input", applyStockFilter);
 
 function renderIngredients(ingredients) {
   stockTableBody.innerHTML = "";
