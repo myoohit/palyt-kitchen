@@ -63,6 +63,18 @@ class DataStore:
     def list_recipes(self) -> list[Recipe]:
         return self.recipes
 
+    # --- Testing helper ---
 
+    @classmethod
+    def from_data(cls, ingredients: list[Ingredient], recipes: list[Recipe]) -> "DataStore":
+        """
+        Builds a DataStore directly from already-loaded data, skipping the
+        file reads. Used by tests so they don't depend on the real JSON
+        files, or break if stock.json changes later.
+        """
+        store = cls.__new__(cls)
+        store.ingredients = {i.name: i for i in ingredients}
+        store.recipes = recipes
+        return store
 # A single shared instance used by the whole app while it's running.
 store = DataStore()

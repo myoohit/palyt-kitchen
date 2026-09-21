@@ -13,10 +13,11 @@ guesses made before touching the data.
 
 ## Decided
 
-- **Unit conversion**: comparisons and deductions will be done in a common
-  base unit (grams for weight, ml for volume), converting kg/l on the way
-  in. Display will still show whatever unit the ingredient's stock record
-  uses. Not yet implemented - will land with stock_service.py.
+- **Unit conversion**: comparisons and deductions are done in a common
+  base unit (grams for weight, ml for volume) via
+  `stock_service.to_base_quantity()`. Display still shows whatever unit
+  the ingredient's stock record uses - conversion only happens internally
+  when comparing or subtracting amounts.
 - **Ingredients missing from stock** (Cumin Seeds, Refined Flour - used by
   Veg Pulao, Jeera Rice, Butter Naan but not present in stock.json): a dish
   needing one of these is treated as unavailable, rather than assuming an
