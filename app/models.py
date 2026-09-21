@@ -36,6 +36,18 @@ class Ingredient(BaseModel):
         return value
 
 
+class IngredientUpdate(BaseModel):
+    """
+    Payload for editing an existing ingredient's quantity and/or par
+    level. Both are optional so a caller can update just one without
+    having to resend the other. Name and unit are not editable here -
+    see stock_service.update_ingredient for why.
+    """
+
+    qty: float | None = Field(default=None, ge=0)
+    par: float | None = Field(default=None, ge=0)
+
+
 class RecipeIngredient(BaseModel):
     """One line in a recipe: how much of one ingredient a dish needs."""
 

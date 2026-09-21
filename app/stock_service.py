@@ -1,10 +1,11 @@
 """
-Business logic for stock: unit conversion and reading the ingredient list.
+Business logic for stock: unit conversion, reading the ingredient list,
+and editing an existing ingredient's quantity or par level.
 
 This module works directly with DataStore and the Ingredient model, and
 doesn't know anything about FastAPI or HTTP - that's what lets us test it
-without spinning up a server. Editing/adding/deleting ingredients will be
-added here in a later commit.
+without spinning up a server. Add/delete will be added here in a later
+commit.
 """
 
 from app.data_store import DataStore
@@ -35,3 +36,40 @@ def to_base_quantity(qty: float, unit: str) -> float:
 def list_ingredients(store: DataStore) -> list[Ingredient]:
     """Returns every ingredient currently in stock."""
     return store.list_ingredients()
+
+
+class IngredientNotFoundError(Exception):
+    """Raised when trying to update or delete an ingredient that doesn't exist."""
+
+
+def update_ingredient(
+    store: DataStore,
+    name: str,
+    qty: float | None = None,
+    par: float | None = None,
+) -> Ingredient:
+    """
+    Updates qty and/or par for an existing ingredient. Whichever field is
+    left as None keeps its current value.
+
+    Unit and name aren't editable through this function - changing what
+    unit an ingredient is measured in is a bigger decision (it would mean
+    re-checking every recipe that references it) than a routine restock
+    or par change should trigger.
+
+    Rebuilding the Ingredient from scratch (rather than mutating fields
+    directly) means it goes through the same validation as creating a
+    new one, so a negative qty or par is rejected here too.
+    """
+    existing = store.get_ingredient(name)
+    if existing is None:
+        raise IngredientNotFoundError(f"'{name}' does not exist")
+
+    updated = Ingredient(
+        name=existing.name,
+        qty=qty if qty is not None else existing.qty,
+        unit=existing.unit,
+        par=par if par is not None else existing.par,
+    )
+    store.upsert_ingredient(updated)
+    return updated

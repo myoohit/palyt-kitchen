@@ -6,6 +6,7 @@ keep passing even if stock.json or recipes.json change later.
 """
 
 import pytest
+from pydantic import ValidationError
 
 from app.data_store import DataStore
 from app.models import Ingredient
@@ -42,3 +43,35 @@ def test_list_ingredients_returns_everything_in_store():
     store = make_test_store()
     names = {i.name for i in stock_service.list_ingredients(store)}
     assert names == {"Paneer", "Cashews"}
+
+
+def test_update_ingredient_changes_qty_and_leaves_par_unchanged():
+    store = make_test_store()
+    updated = stock_service.update_ingredient(store, "Paneer", qty=2.0)
+    assert updated.qty == 2.0
+    assert updated.par == 0.5
+
+
+def test_update_ingredient_changes_par_and_leaves_qty_unchanged():
+    store = make_test_store()
+    updated = stock_service.update_ingredient(store, "Cashews", par=100)
+    assert updated.par == 100
+    assert updated.qty == 300
+
+
+def test_update_ingredient_saves_the_change_in_the_store():
+    store = make_test_store()
+    stock_service.update_ingredient(store, "Paneer", qty=5)
+    assert store.get_ingredient("Paneer").qty == 5
+
+
+def test_update_ingredient_raises_for_unknown_name():
+    store = make_test_store()
+    with pytest.raises(stock_service.IngredientNotFoundError):
+        stock_service.update_ingredient(store, "Nonexistent", qty=1)
+
+
+def test_update_ingredient_rejects_negative_qty():
+    store = make_test_store()
+    with pytest.raises(ValidationError):
+        stock_service.update_ingredient(store, "Paneer", qty=-5)
