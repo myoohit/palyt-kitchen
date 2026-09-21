@@ -39,3 +39,22 @@ guesses made before touching the data.
   still get rejected at order time. Handled with a separate
   `InsufficientStockError` in order_service.py, distinct from
   `DishUnavailableError` - see test_place_order_raises_insufficient_stock_without_partial_deduction.
+- **What counts as "nonsense" in the stock form**: rejected via Pydantic
+  validation on `Ingredient`/`IngredientUpdate` - qty and par can't be
+  negative (Field(ge=0)), unit must be one of the four known units
+  (g/kg/ml/l), and name can't be blank or whitespace-only. Chosen
+  because these are the ways bad data could actually break downstream
+  logic (a negative qty would make "below par" checks meaningless, an
+  unknown unit would make to_base_quantity() silently wrong rather than
+  erroring). Didn't add restrictions beyond that (e.g. max length, no
+  special characters) - the brief's own ingredient names already
+  include punctuation-adjacent cases, and inventing stricter rules than
+  the data needs felt like solving a problem that doesn't exist here.
+
+- **Unit is not editable** via update_ingredient() - only qty and par
+  are. Changing what unit an ingredient is tracked in is a bigger,
+  rarer decision than a routine restock or par change, and would mean
+  re-checking every recipe that references it for correctness. Treated
+  as out of scope for a routine edit; if it's genuinely needed, deleting
+  and re-adding the ingredient (subject to the same recipe-reference
+  check as any delete) is the honest way to do it.
