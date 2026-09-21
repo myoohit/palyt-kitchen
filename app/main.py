@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from app.data_store import store
 from app.models import IngredientUpdate
 from app import stock_service
+from app import menu_service
 
 app = FastAPI(title="Palyt Kitchen")
 
@@ -21,6 +22,10 @@ def get_ingredients():
     """Returns the current stock list."""
     return stock_service.list_ingredients(store)
 
+@app.get("/api/menu")
+def get_menu():
+    """Returns every dish with its price and current availability."""
+    return menu_service.get_menu(store)
 
 @app.put("/api/ingredients/{name}")
 def edit_ingredient(name: str, payload: IngredientUpdate):

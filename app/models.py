@@ -67,3 +67,14 @@ class Recipe(BaseModel):
     dish: str
     price: float = Field(ge=0)
     ingredients: list[RecipeIngredient]
+
+class MenuItem(BaseModel):
+    dish: str
+    price: float
+    available: bool
+
+
+class MenuItem(BaseModel):
+    dish: str
+    price: float
+    available: bool

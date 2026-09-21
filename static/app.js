@@ -2,6 +2,30 @@
 // Handles inline editing of an ingredient's quantity and par level.
 
 const stockTableBody = document.getElementById("stock-table-body");
+const menuTableBody = document.getElementById("menu-table-body");
+
+async function loadMenu() {
+  const response = await fetch("/api/menu");
+  const menu = await response.json();
+  renderMenu(menu);
+}
+
+function renderMenu(menu) {
+  menuTableBody.innerHTML = "";
+  menu.forEach((item) => {
+    const row = document.createElement("tr");
+    const availabilityBadge = item.available
+      ? '<span class="badge bg-success">Available</span>'
+      : '<span class="badge bg-danger">Unavailable</span>';
+
+    row.innerHTML = `
+      <td>${item.dish}</td>
+      <td>${item.price}</td>
+      <td>${availabilityBadge}</td>
+    `;
+    menuTableBody.appendChild(row);
+  });
+}
 
 async function loadIngredients() {
   const response = await fetch("/api/ingredients");
@@ -82,9 +106,10 @@ async function saveEdit(name, qtyValue, parValue) {
     alert(`Could not save: ${formatErrorDetail(error.detail)}`);
     return;
   }
-
   await loadIngredients();
+  await loadMenu();
 }
+
 
 // FastAPI's own validation errors (e.g. negative numbers) come back as a
 // list of objects, not a plain string, so this makes both readable.
@@ -99,3 +124,4 @@ function formatErrorDetail(detail) {
 }
 
 loadIngredients();
+loadMenu();
