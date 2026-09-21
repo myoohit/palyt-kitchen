@@ -1,1 +1,6 @@
-/* Styling will be added as views are built. */
+/* Small tweaks on top of Bootstrap defaults. Kept minimal on purpose -
+   the brief is explicit that design isn't being judged here. */
+
+body {
+  background-color: #fafafa;
+}

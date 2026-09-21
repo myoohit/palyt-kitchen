@@ -10,7 +10,26 @@
 <body>
   <div class="container py-4">
     <h1>Palyt Kitchen</h1>
-    <p class="text-muted">Stock and menu views will go here.</p>
+    <p class="text-muted">Stock on the left feeds the menu on the right.</p>
+
+    <section id="stock-section" class="mt-4">
+      <h2>Stock</h2>
+      <table class="table table-bordered table-sm align-middle">
+        <thead>
+          <tr>
+            <th>Ingredient</th>
+            <th>Quantity</th>
+            <th>Unit</th>
+            <th>Par</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="stock-table-body">
+          <!-- rows are inserted by app.js -->
+        </tbody>
+      </table>
+    </section>
   </div>
 
   <script src="app.js"></script>
