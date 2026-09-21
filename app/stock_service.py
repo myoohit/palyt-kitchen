@@ -32,6 +32,18 @@ def to_base_quantity(qty: float, unit: str) -> float:
         raise ValueError(f"Unknown unit: {unit}")
     return qty * _CONVERSION_TO_BASE[unit]
 
+def from_base_quantity(base_qty: float, unit: str) -> float:
+    """
+    The inverse of to_base_quantity: converts a base-unit amount (grams
+    or ml) into the given unit. Used when a recipe line's unit differs
+    from the stock entry it's deducted from - e.g. a recipe needs 200 g
+    but the stock entry for that ingredient is tracked in kg, so the
+    deduction has to be expressed in kg before it's subtracted.
+    """
+    if unit not in _CONVERSION_TO_BASE:
+        raise ValueError(f"Unknown unit: {unit}")
+    return base_qty / _CONVERSION_TO_BASE[unit]
+
 
 def list_ingredients(store: DataStore) -> list[Ingredient]:
     """Returns every ingredient currently in stock."""

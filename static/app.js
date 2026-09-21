@@ -14,19 +14,51 @@ function renderMenu(menu) {
   menuTableBody.innerHTML = "";
   menu.forEach((item) => {
     const row = document.createElement("tr");
+    if (!item.available) {
+      row.classList.add("text-muted");
+    }
+
     const availabilityBadge = item.available
       ? '<span class="badge bg-success">Available</span>'
       : '<span class="badge bg-danger">Unavailable</span>';
+
+    const actionCell = item.available
+      ? '<button class="btn btn-sm btn-primary order-btn">Order</button>'
+      : '<span class="text-muted">-</span>';
 
     row.innerHTML = `
       <td>${item.dish}</td>
       <td>${item.price}</td>
       <td>${availabilityBadge}</td>
+      <td>${actionCell}</td>
     `;
+
+    if (item.available) {
+      row.querySelector(".order-btn").addEventListener("click", () => {
+        placeOrder(item.dish);
+      });
+    }
+
     menuTableBody.appendChild(row);
   });
 }
 
+async function placeOrder(dish) {
+  const response = await fetch("/api/orders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dish }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    alert(`Could not place order: ${formatErrorDetail(error.detail)}`);
+    return;
+  }
+
+  await loadIngredients();
+  await loadMenu();
+}
 async function loadIngredients() {
   const response = await fetch("/api/ingredients");
   const ingredients = await response.json();

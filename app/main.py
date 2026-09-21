@@ -10,9 +10,10 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 
 from app.data_store import store
-from app.models import IngredientUpdate
+from app.models import IngredientUpdate,OrderRequest
 from app import stock_service
 from app import menu_service
+from app import order_service
 
 app = FastAPI(title="Palyt Kitchen")
 
@@ -26,6 +27,17 @@ def get_ingredients():
 def get_menu():
     """Returns every dish with its price and current availability."""
     return menu_service.get_menu(store)
+
+@app.post("/api/orders")
+def create_order(payload: OrderRequest):
+    """Places an order for a dish, deducting its ingredients from stock."""
+    try:
+        order_service.place_order(store, payload.dish)
+    except order_service.DishNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except (order_service.DishUnavailableError, order_service.InsufficientStockError) as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return {"dish": payload.dish, "status": "ordered"}
 
 @app.put("/api/ingredients/{name}")
 def edit_ingredient(name: str, payload: IngredientUpdate):

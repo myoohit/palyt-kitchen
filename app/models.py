@@ -78,3 +78,6 @@ class MenuItem(BaseModel):
     dish: str
     price: float
     available: bool
+
+class OrderRequest(BaseModel):
+    dish: str
