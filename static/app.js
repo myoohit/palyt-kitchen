@@ -15,7 +15,7 @@ function renderMenu(menu) {
   menu.forEach((item) => {
     const row = document.createElement("tr");
     if (!item.available) {
-      row.classList.add("text-muted");
+      row.classList.add("row-unavailable");
     }
 
     const availabilityBadge = item.available
@@ -196,7 +196,7 @@ document.getElementById("add-ingredient-form").addEventListener("submit", async 
   if (!response.ok) {
     const error = await response.json();
     alert(`Could not add ingredient: ${formatErrorDetail(error.detail)}`);
-    return;
+    return;   
   }
 
   e.target.reset();

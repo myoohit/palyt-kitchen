@@ -4,3 +4,8 @@
 body {
   background-color: #fafafa;
 }
+/* Dims an entire unavailable menu row (text + badge) rather than just
+   the text, so it actually reads as "greyed out" at a glance. */
+.row-unavailable {
+  opacity: 0.5;
+}
