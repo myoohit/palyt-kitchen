@@ -6,12 +6,6 @@ guesses made before touching the data.
 
 ## Open questions to resolve
 
-- Unit conversion: stock and recipes sometimes use different units for the
-  same ingredient (e.g. kg vs g). How is this normalized before comparing
-  or deducting?
-- Ingredients in a recipe with no matching stock record (e.g. Cumin Seeds,
-  Refined Flour are used in recipes but not present in stock.json). What
-  should availability do for a dish that needs one of these?
 - Deleting an ingredient that a recipe still depends on, vs. one that no
   recipe uses (e.g. Cashews vs Bay Leaves). What happens in each case?
 - Any case where the "unavailable if any ingredient is below par" rule
@@ -19,4 +13,12 @@ guesses made before touching the data.
 
 ## Decided
 
-(To be filled in as we build each part.)
+- **Unit conversion**: comparisons and deductions will be done in a common
+  base unit (grams for weight, ml for volume), converting kg/l on the way
+  in. Display will still show whatever unit the ingredient's stock record
+  uses. Not yet implemented - will land with stock_service.py.
+- **Ingredients missing from stock** (Cumin Seeds, Refined Flour - used by
+  Veg Pulao, Jeera Rice, Butter Naan but not present in stock.json): a dish
+  needing one of these is treated as unavailable, rather than assuming an
+  untracked ingredient is infinitely available. Not yet implemented - will
+  land with menu_service.py.
