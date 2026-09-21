@@ -66,30 +66,31 @@ Every number above was checked against the real `stock.json` / `recipes.json`
 by running the actual deduction logic, not estimated — see [DECISIONS.md](DECISIONS.md).
 
 ## Architecture
+
+```
 app/
-├── main.py FastAPI routes. API declared before the static
-│ mount, so routes aren't shadowed by it.
-├── models.py Pydantic schemas — validation lives here
-│ (no negative qty/par, known units only, etc.)
-├── data_store.py Loads stock.json / recipes.json once at startup.
-│ Holds state, does no business logic.
-├── stock_service.py Unit conversion (kg↔g, l↔ml), list/add/edit/delete.
-├── menu_service.py Availability: is a dish's stock at/above par?
-└── order_service.py Places an order: validate → deduct → or reject
-cleanly with nothing partially changed.
+├── main.py           FastAPI routes. API declared before the static
+│                      mount, so routes aren't shadowed by it.
+├── models.py          Pydantic schemas — validation lives here
+│                      (no negative qty/par, known units only, etc.)
+├── data_store.py      Loads stock.json / recipes.json once at startup.
+│                      Holds state, does no business logic.
+├── stock_service.py   Unit conversion (kg↔g, l↔ml), list/add/edit/delete.
+├── menu_service.py    Availability: is a dish's stock at/above par?
+└── order_service.py   Places an order: validate, deduct, or reject
+                       cleanly with nothing partially changed.
 
-static/ Plain HTML/CSS/JS + Bootstrap (CDN). No framework,
-no build step — talks to the API over fetch().
+static/                Plain HTML/CSS/JS + Bootstrap (CDN). No framework,
+                        no build step — talks to the API over fetch().
 
-tests/ One test file per service, using an in-memory
-DataStore.from_data() so tests don't depend on
-the real JSON files.
-
+tests/                 One test file per service, using an in-memory
+                        DataStore.from_data() so tests don't depend on
+                        the real JSON files.
+```
 
 The split exists so the interesting logic — availability, deduction, unit
 conversion — is testable without spinning up a server or touching a browser.
 `main.py` only wires HTTP to that logic; it has no rules of its own.
-
 ## Design decisions
 
 Data is **in-memory only** — loaded once from the JSON files at startup, never
